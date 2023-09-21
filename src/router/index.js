@@ -30,6 +30,12 @@ const routes = [
 			import(/* webpackChunkName: "about" */ '../views/board/ListView.vue'),
 	},
 	{
+		path: '/signIn',
+		name: 'LoginBox',
+		component: () =>
+			import('../views/Login/LoginBox.vue'),
+	},
+	{
 		path: '/write',
 		name: 'BoardWrite',
 		component: () => import('../views/board/WriteView.vue'),

@@ -6,6 +6,9 @@
 		<v-btn @click="movePage('/list')" text>
 			<span class="mr-2">Board</span>
 		</v-btn>
+		<v-btn @click="signIn('/signIn')" text>
+			<span class="mr-2">signIn</span>
+		</v-btn>
 		<v-spacer></v-spacer>
 		<Clock />
 		<v-divider class="mx-4" inset vertical></v-divider>
