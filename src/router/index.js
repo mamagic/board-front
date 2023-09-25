@@ -33,7 +33,7 @@ const routes = [
 		path: '/signIn',
 		name: 'LoginBox',
 		component: () =>
-			import('../views/Login/LoginBox.vue'),
+			import('../views/Login/LoginBoxView.vue'),
 	},
 	{
 		path: '/write',

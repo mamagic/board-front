@@ -1,111 +1,88 @@
 <template>
-    <b-form @submit.stop.prevent="onSubmit" class="login-box" data-cy="login-form">
-      <b-form-group id="group-username" label label-for="input-username" description>
-        <b-form-input
-          id="input-username"
-          v-model="form.username"
+  <form @submit.prevent="handleSubmit">
+    <h1 class="title">Login</h1>
+    <div class="field">
+      <label class="label">Username</label>
+      <div class="control has-icons-left has-icons-right">
+        <input
+          v-model="username"
           type="text"
-          placeholder="Enter username"
-          :state="$v.form.username.$dirty ? !$v.form.username.$error : null"
-          data-cy="login-username"
-          class="from-input input-username"
-          :class="{ 'border-danger': errorMessages }"
-        ></b-form-input>
-  
-        <b-form-invalid-feedback id="input-username-invalid" data-cy="login-username-invalid"
-          >Please enter your username or email address.</b-form-invalid-feedback
-        >
-      </b-form-group>
-  
-      <b-form-group id="group-password" label label-for="input-password" description>
-        <b-form-input
-          id="input-password"
+          name="username"
+          class="input"
+          :class="{ 'is-danger': submitted && !username }"
+        />
+        <span class="icon is-small is-left">
+          <i class="fa fa-envelope"></i>
+        </span>
+        <span class="icon is-small is-right" v-show="submitted && !username">
+          <i class="fa fa-exclamation-triangle"></i>
+        </span>
+      </div>
+      <p class="help is-danger" v-show="submitted && !username">
+        Username is required
+      </p>
+    </div>
+    <div class="field">
+      <label class="label">Password</label>
+      <div class="control has-icons-left has-icons-right">
+        <input
+          v-model="password"
           type="password"
-          v-model="form.password"
-          placeholder="Enter password"
-          :state="$v.form.password.$dirty ? !$v.form.password.$error : null"
-          data-cy="login-password"
-          class="from-input input-password"
-          :class="{ 'border-danger': errorMessages }"
-        ></b-form-input>
-        <b-form-invalid-feedback id="input-password-invalid" data-cy="login-password-invalid"
-          >Please enter your password.</b-form-invalid-feedback
-        >
-      </b-form-group>
-  
-      <template v-if="successMessages || errorMessages">
-        <b-row class="mb-2">
-          <b-col v-if="successMessages" data-cy="login-success-message" class="text-primary message-col">{{
-            successMessages
-          }}</b-col>
-          <b-col v-if="errorMessages" data-cy="login-error-message" class="text-danger message-col">{{
-            errorMessages
-          }}</b-col>
-        </b-row>
-      </template>
-  
-      <b-row>
-        <b-col>
-          <b-button data-cy="login-button" class="btn-login" type="submit" variant="primary" :disabled="loading">
-            <span class="spinner spinner-white" v-if="loading"></span>
-            Login
-          </b-button>
-        </b-col>
-        <b-col class="text-right">
-          <b-link :to="{ path: '/find-password' }">Forgot password?</b-link>
-        </b-col>
-      </b-row>
-    </b-form>
-  </template>
-  
-  <script>
-  import { mapState, mapGetters, mapActions } from 'vuex';
-  import { required, minLength } from 'vuelidate/lib/validators';
-  import router from '@/router';
-  
-  export default {
-    name: 'LoginBox',
-    data() {
-      return {
-        form: {
-          username: '',
-          password: ''
-        }
-      };
+          name="password"
+          class="input"
+          :class="{ 'is-danger': submitted && !password }"
+        />
+        <span class="icon is-small is-left">
+          <i class="fa fa-lock"></i>
+        </span>
+        <span class="icon is-small is-right" v-show="submitted && !password">
+          <i class="fa fa-exclamation-triangle"></i>
+        </span>
+      </div>
+      <p class="help is-danger" v-show="submitted && !password">
+        Password is required
+      </p>
+    </div>
+    <br />
+    <div class="field">
+      <div class="control">
+        <button class="button is-link">
+          Login
+        </button>
+      </div>
+      <img
+        v-show="loggingIn"
+        src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="
+      />
+    </div>
+  </form>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      username: 'user1',
+      password: 'Pass1',
+      submitted: false,
+    };
+  },
+  computed: {
+    loggingIn() {
+      return this.$store.state.auth.loggingIn;
     },
-    validations: {
-      form: {
-        username: {
-          required
-        },
-        password: {
-          required,
-          minLength: minLength(6)
-        }
+  },
+  created() {
+    this.$store.dispatch('auth/logout');
+  },
+  methods: {
+    handleSubmit() {
+      this.submitted = true;
+      const { username, password } = this;
+      if (username && password) {
+        this.$store.dispatch('auth/login', { username, password });
       }
     },
-    mounted() {
-      if (this.isLoggedIn) {
-        // Already logged in
-        this.logout({ router, slient: true });
-      }
-    },
-    computed: {
-      ...mapGetters('alert', ['errorMessages', 'successMessages']),
-      ...mapState('auth', ['loading']),
-      ...mapGetters('auth', ['isLoggedIn'])
-    },
-    methods: {
-      ...mapActions('auth', ['login', 'logout']),
-      onSubmit() {
-        this.$v.form.$touch();
-        if (this.$v.form.$anyError) {
-          return;
-        }
-  
-        // Form submit logic
-        this.login({ username: this.form.username, password: this.form.password, router });
-      }
-    }
-  };
-  </script>
+  },
+};
+</script>
